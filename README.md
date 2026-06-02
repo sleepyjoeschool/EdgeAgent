@@ -193,4 +193,64 @@ Commands flagged as dangerous trigger a native OS confirmation dialog before exe
 
 ## License
 
-See the project's license file for terms.
+Apache License Version 2.0.
+
+## Additional Documents
+
+### Risk Warning & Disclaimer
+Your data security and integrity are very important.
+
+This Agent is a Computer Use Agent. The Computer Use Agent is an AI system capable of operating a graphical user interface (GUI) directly like a human. Through technical means (YOLO/OCR based on local localization and multi-modal image understanding capabilities based externally), it recognizes screen content, moves the cursor, clicks buttons, types text, and automates tasks across applications without relying on APIs or specific code interfaces. This AI system can fully operate the currently used computer system.
+
+Due to the unpredictability of AI, we cannot guarantee that the AI's behavior is correct, complete, and safe.
+
+Even with minimal, blacklist-based defensive security measures in place for this agent, this AI system is still very likely to cause severe damage to the system, especially when induced. Furthermore, AI providers will have the ability (and are very likely) to collect transmitted data, including personal privacy data.
+
+The developer strongly recommends running this agent in a new virtual machine (specific configurations can be found below in "Best Practices"), rather than on a physical computer or a cloud server/computer containing important data.
+
+You may wish to click here to view best practices.
+
+Please note that inappropriate protective measures may lead to severe consequences, including but not limited to file loss, malware installation, and privacy leakage. The user shall bear any adverse consequences.
+
+This program is open-source, free software provided "as is" under the MIT License without quality guarantees. The developers have disclosed all known issues as far as possible, but the disclosures here may be incomplete, and this code may contain other flaws. We encourage you to actively submit feedback to allow us to fix them.
+
+The original version of this program does not submit any data to any third party (except designated AI providers). If you find a modified version that does so, stop immediately and do not use it; if possible, thoroughly scan your computer for malware and viruses and report the concern to the hosting provider.
+
+Please note that using this Agent implies your acceptance of its potential risks. You are responsible for any damages caused by using it on unauthorized computers.
+
+
+### Responsible Disclosure
+Although this computer-use agent software is released as open source under the Apache License 2.0, it is not intended for academic use, despite being listed for the AQA External Project Qualification and a part of the high school AI Fair project. The developer firmly believes that academic honesty is a fundamental principle in everything they do, which is reflected in the following disclosure statement related to the software and its source code.
+
+Technical Statement About Misuse
+Like many open-source agents, this software can be used unethically. Unfortunately, there is no permanent solution to prevent this issue.
+
+It is strongly advised that the use of the Computer Use agent will be detected by any specialized exam browser and exam environment, including BlueBook. Misuse or abuse may result in the invalidation of qualifications and a ban from any exam boards, including those for digital assessments conducted by Cambridge, AQA, Oxford, and the College Board.
+
+Users are also discouraged from employing this software for unwanted automation, which includes but is not limited to ticket applications and video games. Such misuse could violate terms of service and fair use, leading to account suspension or other legal consequences. Please review your local laws for more details.
+
+Credits: Software Packages Used
+We would like to extend our sincere thanks to the developers and businesses behind the following software packages. Without their contributions, this software would not exist:
+
+Python – https://python.org/, PyAutoGUI, Ultralytics (Ultralytics Inc.), YOLOv8 (You Only Look Once version 8), PaddlePaddle (Netcom Science Technology Co., Ltd.), Umi-OCR
+
+LLM Model Provider
+This software benefits from the cost-efficient DeepSeek V4 Pro model. Special thanks to:
+
+Liang Wenfeng, High-Flyer
+
+Model Training
+The management and training of the YOLO model were conducted on the following platforms:
+
+Credit to:
+
+Roboflow, Google Colab Training Service, SCNet (Supercomputing Network)
+
+### Responsible Disclosure of Language Model Use
+
+This software has been rewritten and improved with the assistance of the DeepSeek model. The following modifications were made:
+
+1. The function-calling implementation has been changed from plain text to JSON format. 
+2. A warning message has been added, which will display before the application runs. 
+3. The program has been rewritten to fix potential bugs and remove any previous data from development and testing.
+4. The generation of Documents (README).
