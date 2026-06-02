@@ -1,4 +1,4 @@
-# Agent Skill Toolkit
+# Edge Agent (Computer Use Agent at Edge devices)
 
 A desktop automation agent powered by the DeepSeek LLM. It provides keyboard/mouse control, shell command execution, screen capture with OCR, YOLO object detection, and VLM (vision-language model) screen analysis — all through natural language prompts.
 
