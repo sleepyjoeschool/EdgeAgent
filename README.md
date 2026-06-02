@@ -5,7 +5,7 @@ A desktop automation agent powered by the DeepSeek LLM. It provides keyboard/mou
 ## Directory Structure
 
 ```
-publish_clean/
+EdgeAgent/
 ├── run.py                         # CLI launcher (interactive REPL or single-shot)
 ├── run_gui.py                     # GUI launcher (dark-themed Tkinter interface)
 ├── run_web.py                     # Web control panel launcher (Flask SSE streaming)
