@@ -1,0 +1,158 @@
+{
+  "category": "mouse",
+  "description": "Mouse action tools for cursor positioning, movement (instant or human-like), and clicking (left, right, double-click).",
+
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "MouseAction_GetPosition",
+        "description": "Obtain the current mouse coordinates on the screen.\n\nWhen to use: when you need to know the current mouse position for subsequent actions; when you want to verify the mouse location before performing an action; when you need relative positioning (e.g., 'move 100 pixels right from current position').\nWhen NOT to use: when the target element's coordinates are already known and provided; when you only need to click at the current position (use LeftClick/RightClick instead); when immediate action is required and position checking would cause unnecessary delay.\n\nReturns: a string in the format 'X:[XCoordinate]-Y:[YCoordinate]' where both coordinates are integers >= 0. Returns 'Error: [description]' on failure.\n\nNotes: This function does not move the mouse or perform any action. Coordinates are relative to screen resolution (e.g., 1920x1080).",
+        "parameters": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "MouseAction_InstantMove",
+        "description": "Move the mouse pointer immediately to the specified screen coordinates. Movement is immediate with no visible animation.\n\nWhen to use: in general applications; when fast or precise movement is required; when the target coordinates are already known.\nWhen NOT to use: in restricted or bot-detection environments (e.g., CAPTCHA); when a visible or natural mouse trajectory is important; when you suspect the coordinates might be invalid.\n\nReturns: 'True' if success or 'False' if failed.\n\nNotes: Consider screen resolution limits when specifying coordinates. For natural movement, use MouseAction_MovementWithDelay instead.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "XCoordinate": {
+              "type": "integer",
+              "description": "The X coordinate to move to. Must be greater than or equal to 0.",
+              "minimum": 0
+            },
+            "YCoordinate": {
+              "type": "integer",
+              "description": "The Y coordinate to move to. Must be greater than or equal to 0.",
+              "minimum": 0
+            }
+          },
+          "required": ["XCoordinate", "YCoordinate"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "MouseAction_MovementWithDelay",
+        "description": "Move the mouse pointer to the specified coordinates over a set duration, producing a more natural, human-like movement. The movement follows a curved, human-like path rather than a straight line.\n\nWhen to use: in applications that may detect automated behavior (e.g., CAPTCHA); when a visible or realistic mouse trajectory is desired; when you want to simulate human mouse movement patterns.\nWhen NOT to use: when fast movement is required; when immediate response is critical; when the application expects instant cursor positioning.\n\nReturns: 'True' if success or 'False' if failed.\n\nNotes: Duration should typically be between 0.5 and 3.0 seconds for natural movement. Use longer durations for more realistic human simulation.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "XCoordinate": {
+              "type": "integer",
+              "description": "The X coordinate to move to. Must be greater than or equal to 0.",
+              "minimum": 0
+            },
+            "YCoordinate": {
+              "type": "integer",
+              "description": "The Y coordinate to move to. Must be greater than or equal to 0.",
+              "minimum": 0
+            },
+            "Duration": {
+              "type": "number",
+              "description": "The time, in seconds, for the entire movement. Must be greater than 0. Recommended range: 0.5 to 3.0 seconds.",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": ["XCoordinate", "YCoordinate", "Duration"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "MouseAction_LeftClick",
+        "description": "Perform a left-click at the current mouse position. This performs a standard left mouse button click and release. The mouse remains at the same position after clicking.\n\nWhen to use: when a left-click is required; when you need to select, activate, or confirm an element; when the mouse is already positioned over the target.\nWhen NOT to use: when you need to click a specific coordinate (move first, then click); when a different mouse action is required (e.g., right-click); when the mouse position is unknown or uncertain.\n\nReturns: 'True' if success or 'False' if failed.\n\nNotes: For double-click functionality, use MouseAction_LeftDoubleClick for reliable double-click behavior.",
+        "parameters": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "MouseAction_RightClick",
+        "description": "Perform a right-click at the current mouse position. This performs a standard right mouse button click and release. The mouse remains at the same position after clicking. Commonly used to open context menus.\n\nWhen to use: when a right-click is required; when you need to access context menus or alternative options; when the mouse is already positioned over the target.\nWhen NOT to use: when you need to click a specific coordinate (move first, then click); when a different mouse action is required (e.g., left-click); when the mouse position is unknown or uncertain.\n\nReturns: 'True' if success or 'False' if failed.",
+        "parameters": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "MouseAction_LeftDoubleClick",
+        "description": "Perform a left double-click at the current mouse position. This performs two rapid left mouse button clicks with a short interval. The mouse remains at the same position after double-clicking.\n\nWhen to use: when a left double-click is required (e.g., opening files, selecting words, activating icons); when you need to perform a standard double-click action in graphical user interfaces.\nWhen NOT to use: when you need to click a specific coordinate (move first, then double-click); when a single click is sufficient; when the mouse position is unknown or uncertain.\n\nReturns: 'True' if success or 'False' if failed.\n\nNotes: Use this instead of two consecutive LeftClick commands for reliable double-click behavior.",
+        "parameters": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      }
+    }
+  ],
+
+  "examples": [
+    {
+      "user": "Where is the mouse right now?",
+      "assistant": {
+        "name": "MouseAction_GetPosition",
+        "arguments": {}
+      }
+    },
+    {
+      "user": "Move the mouse to position (114, 514) instantly.",
+      "assistant": {
+        "name": "MouseAction_InstantMove",
+        "arguments": {
+          "XCoordinate": 114,
+          "YCoordinate": 514
+        }
+      }
+    },
+    {
+      "user": "Move the mouse to (114, 514) smoothly over 2.33 seconds.",
+      "assistant": {
+        "name": "MouseAction_MovementWithDelay",
+        "arguments": {
+          "XCoordinate": 114,
+          "YCoordinate": 514,
+          "Duration": 2.33
+        }
+      }
+    },
+    {
+      "user": "Click the left mouse button at the current position.",
+      "assistant": {
+        "name": "MouseAction_LeftClick",
+        "arguments": {}
+      }
+    },
+    {
+      "user": "Right-click where the mouse is now.",
+      "assistant": {
+        "name": "MouseAction_RightClick",
+        "arguments": {}
+      }
+    },
+    {
+      "user": "Double-click to open the file.",
+      "assistant": {
+        "name": "MouseAction_LeftDoubleClick",
+        "arguments": {}
+      }
+    }
+  ]
+}

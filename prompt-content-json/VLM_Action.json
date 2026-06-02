@@ -1,0 +1,76 @@
+{
+  "category": "vlm",
+  "description": "VLM multi-modal vision reasoning — analyze screen content and images using a Qwen-VL vision-language model. Use for deep visual understanding tasks that go beyond OCR text extraction and YOLO object detection: describing images, interpreting diagrams, reading complex UI layouts, understanding visual context.",
+
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "VLM_Action_AnalyzeScreen",
+        "description": "Capture the current screen and send it to the Qwen-VL multi-modal model for deep visual analysis. The model can describe what it sees, interpret UI layouts, read and understand text in context, analyze charts/diagrams, and answer questions about the screen content.\n\nUnlike OCR (which only extracts raw text) and YOLO (which only detects object classes), VLM provides human-like visual understanding — it can describe relationships between elements, explain what's happening on screen, and reason about visual content.\n\nWhen to use:\n- User asks 'what's on my screen?' and wants a descriptive answer\n- Understanding complex UI layouts (panels, sidebars, dialogs) with context\n- Analyzing charts, graphs, or diagrams visible on screen\n- Getting a human-readable description of screen content\n- Multi-step visual reasoning about what's displayed\n- When OCR+YOLO results are insufficient to answer the user's question\n\nWhen NOT to use:\n- Simple text extraction (use OCR: ScreenCaptureAction_CaptureScreen)\n- Just detecting objects/buttons (use YOLO: ScreenCaptureAction_DetectObjects)\n- Quick positional checks\n\nCOOPERATION: VLM complements OCR and YOLO. For complete screen understanding, you can use all three together — OCR for raw text, YOLO for object bounding boxes, and VLM for contextual interpretation.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "PromptString": {
+              "type": "string",
+              "description": "The question or prompt about the screen content. Examples: 'Describe what's on the screen', 'What error dialog is showing?', 'Explain the chart in the current window', 'What application is running and what is its state?'"
+            }
+          },
+          "required": ["PromptString"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "VLM_Action_AnalyzeImage",
+        "description": "Send a Base64-encoded image to the Qwen-VL multi-modal model for deep visual analysis. Use this when you already have an image (from a previous tool result, clipboard, or file) and want the VLM to analyze it.\n\nUnlike AnalyzeScreen (which auto-captures the current screen), this tool accepts any Base64-encoded image — useful for analyzing saved screenshots, images from the clipboard, or images from web pages.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "ImgBase64": {
+              "type": "string",
+              "description": "Base64-encoded image data (without the 'data:image/png;base64,' prefix)."
+            },
+            "PromptString": {
+              "type": "string",
+              "description": "The question or prompt about the image. Examples: 'Describe this image', 'What objects are in this picture?', 'Read the text in this screenshot'."
+            }
+          },
+          "required": ["ImgBase64", "PromptString"]
+        }
+      }
+    }
+  ],
+
+  "examples": [
+    {
+      "user": "Describe what's on my screen right now.",
+      "assistant": {
+        "name": "VLM_Action_AnalyzeScreen",
+        "arguments": {
+          "PromptString": "请详细描述当前屏幕上的内容，包括所有窗口、图标、文本和UI元素。"
+        }
+      }
+    },
+    {
+      "user": "What error message is showing?",
+      "assistant": {
+        "name": "VLM_Action_AnalyzeScreen",
+        "arguments": {
+          "PromptString": "这个屏幕上显示了什么错误信息？请读取错误对话框中的文字内容。"
+        }
+      }
+    },
+    {
+      "user": "Analyze this saved screenshot.",
+      "assistant": {
+        "name": "VLM_Action_AnalyzeImage",
+        "arguments": {
+          "ImgBase64": "/9j/4AAQSkZJRg...",
+          "PromptString": "请详细描述这张截图中的内容。"
+        }
+      }
+    }
+  ]
+}

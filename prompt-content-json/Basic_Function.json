@@ -1,0 +1,240 @@
+{
+  "category": "basic",
+  "description": "Basic utility functions including string counting, number range generation, clipboard read/write, time delay (Wait), and human interaction popups (HumanOperation, HumanInput).",
+
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "BasicFunction_CountInGivenString",
+        "description": "Count how many times a specific character or substring appears within a larger string. The search can be case-sensitive or case-insensitive.\n\nWhen to use: when you need to count occurrences of a character or substring in a given text.\nWhen NOT to use: for general counting of numbers; for trivial cases where the count is obvious.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "full_string": {
+              "type": "string",
+              "description": "The non-empty string to search within.",
+              "minLength": 1
+            },
+            "target": {
+              "type": "string",
+              "description": "The non-empty string (character or substring) to count occurrences of.",
+              "minLength": 1
+            },
+            "ignore_case": {
+              "type": "boolean",
+              "description": "If true, the search is case-insensitive. If false, the search is case-sensitive."
+            }
+          },
+          "required": ["full_string", "target", "ignore_case"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "BasicFunction_CountNumbers",
+        "description": "Generate a sequence of numbers from a start value to an end value, optionally with a step, and join them with a separator. The sequence includes both start and end if the step direction allows. For a negative step, start must be greater than end to count downwards.\n\nWhen to use: when you need to generate a range of numbers, especially for large ranges (e.g., from 1 to 10,000).\nWhen NOT to use: for trivial ranges with fewer than 10 numbers (simple mental counting is sufficient).",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "start": {
+              "type": "integer",
+              "description": "The first number in the sequence."
+            },
+            "end": {
+              "type": "integer",
+              "description": "The last number in the sequence."
+            },
+            "step": {
+              "type": "integer",
+              "description": "The increment (or decrement if negative). Must not be zero."
+            },
+            "separator": {
+              "type": "string",
+              "description": "The string to place between each pair of numbers (e.g., ',', ' - ')."
+            }
+          },
+          "required": ["start", "end", "step", "separator"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "BasicFunction_WriteToClipboard",
+        "description": "Write a string to the system clipboard, making it available for pasting in other applications. Replaces any previous clipboard content.\n\nWhen to use: when you need to copy text to the clipboard for pasting elsewhere.\nWhen NOT to use: when you only need to read the clipboard content (use BasicFunction_ReadFromClipboard instead).\n\nReturns: 'True' on success.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "content": {
+              "type": "string",
+              "description": "The non-empty string to write to the clipboard.",
+              "minLength": 1
+            }
+          },
+          "required": ["content"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "BasicFunction_ReadFromClipboard",
+        "description": "Retrieve the current textual content of the system clipboard.\n\nWhen to use: when you need to read what is currently in the clipboard.\nWhen NOT to use: when you need to write to the clipboard (use BasicFunction_WriteToClipboard instead).\n\nReturns: the current clipboard text as a string. Returns an empty string if the clipboard is empty or contains non-text data.",
+        "parameters": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "BasicFunction_Wait",
+        "description": "Pause execution for a specified number of seconds. The agent blocks and does nothing during this time.\n\nWhen to use: when you need to wait for a UI animation to finish; when a webpage or application needs time to load; when you need to pace actions to appear human-like; when waiting between retry attempts.\nWhen NOT to use: for sub-second delays (not needed); when you could poll for completion instead.\n\nseconds range: 1 to 6000 (100 minutes max).",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "seconds": {
+              "type": "integer",
+              "description": "Number of seconds to wait (1-6000).",
+              "minimum": 1,
+              "maximum": 6000
+            }
+          },
+          "required": ["seconds"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "BasicFunction_HumanOperation",
+        "description": "Show a popup dialog requesting the human user to perform a manual operation. A message explains what to do. The dialog has an OK button — execution blocks until the user clicks it.\n\nWhen to use: when the agent encounters a CAPTCHA or behavioral verification it cannot solve; when a physical action is required (insert USB key, biometric auth); when a website requires manual interaction the agent cannot simulate.\n\nReturns: confirmation that the user acknowledged the operation.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string",
+              "description": "The instruction message shown to the user, e.g. 'Please complete the CAPTCHA manually and click OK when done.'",
+              "minLength": 1
+            }
+          },
+          "required": ["message"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "BasicFunction_HumanInput",
+        "description": "Show a popup dialog requesting the human user to provide text input. A message explains what information is needed. The dialog has a text field and OK/Cancel buttons.\n\nWhen to use: when the agent needs information it cannot find automatically (email address, password, account number); when the user needs to provide credentials or secret information; when a decision requires human judgment.\n\nReturns: the text the user entered, or an error if they cancelled.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string",
+              "description": "The prompt shown to the user, e.g. 'The agent cannot find your saved email address. Please enter the registration email for this website.'",
+              "minLength": 1
+            }
+          },
+          "required": ["message"]
+        }
+      }
+    }
+  ],
+
+  "examples": [
+    {
+      "user": "Count how many times 'A' appears in 'AaAa' (case-sensitive).",
+      "assistant": {
+        "name": "BasicFunction_CountInGivenString",
+        "arguments": {
+          "full_string": "AaAa",
+          "target": "A",
+          "ignore_case": false
+        }
+      }
+    },
+    {
+      "user": "Count how many times 'A' appears in 'AaAa' (case-insensitive).",
+      "assistant": {
+        "name": "BasicFunction_CountInGivenString",
+        "arguments": {
+          "full_string": "AaAa",
+          "target": "A",
+          "ignore_case": true
+        }
+      }
+    },
+    {
+      "user": "Generate numbers from 1 to 1000 separated by commas.",
+      "assistant": {
+        "name": "BasicFunction_CountNumbers",
+        "arguments": {
+          "start": 1,
+          "end": 1000,
+          "step": 1,
+          "separator": ","
+        }
+      }
+    },
+    {
+      "user": "Count down from 10 to 2 by steps of -2, separated by ' - '.",
+      "assistant": {
+        "name": "BasicFunction_CountNumbers",
+        "arguments": {
+          "start": 10,
+          "end": 2,
+          "step": -2,
+          "separator": " - "
+        }
+      }
+    },
+    {
+      "user": "Copy 'Hello World' to the clipboard.",
+      "assistant": {
+        "name": "BasicFunction_WriteToClipboard",
+        "arguments": {
+          "content": "Hello World"
+        }
+      }
+    },
+    {
+      "user": "What's currently in my clipboard?",
+      "assistant": {
+        "name": "BasicFunction_ReadFromClipboard",
+        "arguments": {}
+      }
+    },
+    {
+      "user": "Wait 3 seconds for the page to load.",
+      "assistant": {
+        "name": "BasicFunction_Wait",
+        "arguments": {
+          "seconds": 3
+        }
+      }
+    },
+    {
+      "user": "I can't solve this CAPTCHA, please ask the user to do it.",
+      "assistant": {
+        "name": "BasicFunction_HumanOperation",
+        "arguments": {
+          "message": "The agent cannot solve the CAPTCHA automatically. Please complete the verification manually, then click OK to continue."
+        }
+      }
+    },
+    {
+      "user": "I need the user's email to complete this registration.",
+      "assistant": {
+        "name": "BasicFunction_HumanInput",
+        "arguments": {
+          "message": "Please enter the email address to use for registration on this website."
+        }
+      }
+    }
+  ]
+}

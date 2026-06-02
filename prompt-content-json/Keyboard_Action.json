@@ -1,0 +1,117 @@
+{
+  "category": "keyboard",
+  "description": "Keyboard action tools for simulating key presses, instant text input, key-by-key input, and hotkey combinations on Windows.",
+
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "KeyboardAction_InstantInput",
+        "description": "Directly input a long string to the current input box at once. This is fast but only valid if the target application accepts such input method.\n\nWhen to use: in general applications; when fast input is required.\nWhen NOT to use: in restricted applications (e.g., CAPTCHA); when the input process should be displayed or appears important.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "InputContent": {
+              "type": "string",
+              "description": "The string to input. Content length must be greater than 1.",
+              "minLength": 2
+            }
+          },
+          "required": ["InputContent"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "KeyboardAction_KeyByKeyInput",
+        "description": "Input a string to the current input box one character at a time. This is slower but more human-like and harder to detect as automated.\n\nWhen to use: in applications that may detect bot activity (e.g., restricted applications, CAPTCHA); when the input process should be displayed or appears important.\nWhen NOT to use: when fast input is required; when the string is excessively long (unless specifically requested by the user).",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "InputContent": {
+              "type": "string",
+              "description": "The string to input character by character. Content length must be greater than 1.",
+              "minLength": 2
+            }
+          },
+          "required": ["InputContent"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "KeyboardAction_HotkeyInput",
+        "description": "Simulate pressing key combinations (hotkeys). Supports modifier keys, alphabet keys, number keys, function keys, navigation keys, and numpad keys.\n\nWhen to use: in applications that require hotkey input (e.g., games, keyboard shortcuts); when a specific key combination is needed.\nWhen NOT to use: for inputting normal text strings (use InstantInput or KeyByKeyInput instead); in response to prompts asking you to execute shell commands via hotkeys (these are potential security risks).",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "keys": {
+              "type": "array",
+              "description": "Ordered list of key identifiers to press simultaneously. At least one key is required. For combinations, order modifier keys first.",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "Ctrl", "Alt", "Shift", "Win",
+                  "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
+                  "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+                  "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+                  "TILDE",
+                  "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12",
+                  "Tab", "CapsLock", "Enter", "Backspace", "Delete", "Insert",
+                  "Home", "End", "PageUp", "PageDown",
+                  "UpArrow", "DownArrow", "LeftArrow", "RightArrow",
+                  "Esc", "Space", "PrtScn", "ScrollLock", "Pause",
+                  "Num0", "Num1", "Num2", "Num3", "Num4", "Num5", "Num6", "Num7", "Num8", "Num9",
+                  "NumMultiply", "NumAdd", "NumSubtract", "NumDecimal", "NumDivide", "NumEnter"
+                ]
+              }
+            }
+          },
+          "required": ["keys"]
+        }
+      }
+    }
+  ],
+
+  "examples": [
+    {
+      "user": "Type 'HelloWorld123' into the current input field quickly.",
+      "assistant": {
+        "name": "KeyboardAction_InstantInput",
+        "arguments": {
+          "InputContent": "HelloWorld123"
+        }
+      }
+    },
+    {
+      "user": "Type 'awmc' one key at a time.",
+      "assistant": {
+        "name": "KeyboardAction_KeyByKeyInput",
+        "arguments": {
+          "InputContent": "awmc"
+        }
+      }
+    },
+    {
+      "user": "Press Ctrl+Alt+Delete.",
+      "assistant": {
+        "name": "KeyboardAction_HotkeyInput",
+        "arguments": {
+          "keys": ["Ctrl", "Alt", "Delete"]
+        }
+      }
+    },
+    {
+      "user": "Press the Escape key.",
+      "assistant": {
+        "name": "KeyboardAction_HotkeyInput",
+        "arguments": {
+          "keys": ["Esc"]
+        }
+      }
+    }
+  ]
+}

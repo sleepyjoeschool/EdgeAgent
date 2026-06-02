@@ -1,0 +1,119 @@
+{
+  "category": "screen_capture",
+  "description": "Screen capture tools: OCR text extraction (UMNI OCR API) and YOLO object detection. These two tools are COMPLEMENTARY — call both in parallel for complete screen understanding: OCR reads text content, YOLO locates objects and UI elements spatially.",
+
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "ScreenCaptureAction_CaptureScreen",
+        "description": "Capture the entire screen and perform OCR (Optical Character Recognition) using the UMNI OCR HTTP API to extract all visible text.\n\nWhen to use: when you need to read text from the current screen; when the user asks what is on their screen; when you need to understand the content of the active window.\n\nCOOPERATION with DetectObjects: This tool extracts TEXT; DetectObjects locates UI ELEMENTS. For a complete picture of the screen, call BOTH in parallel. OCR tells you what things SAY, YOLO tells you where things ARE. Together you can identify \"the Save button at position (500, 300)\" rather than just \"a button\" or just \"the word Save\".\n\nLanguage selection: Choose the language parameter based on the expected on-screen content. If unsure, omit it to use the API's auto-detection. Supported languages:\n- chinese_simplified: models/config_chinese.txt\n- english: models/config_en.txt\n- chinese_traditional: models/config_chinese_cht.txt\n- japanese: models/config_japan.txt\n- korean: models/config_korean.txt\n- russian: models/config_cyrillic.txt\n\nBehavior:\n1. Captures the entire screen as an image.\n2. Encodes the image as base64 and sends it to the UMNI OCR API.\n3. Returns a JSON array where each element represents a detected text element with the following structure:\n   {\n     \"text\": \"detected text string\",\n     \"confidence\": 0.9876,\n     \"box\": [x1, y1, x2, y2, x3, y3, x4, y4]\n   }\n   The box array contains the four corner coordinates of the bounding polygon.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "language": {
+              "type": "string",
+              "description": "Target language for OCR recognition. Omit for auto-detection. Choose based on the expected on-screen text language.",
+              "enum": [
+                "chinese_simplified",
+                "english",
+                "chinese_traditional",
+                "japanese",
+                "korean",
+                "russian"
+              ]
+            }
+          },
+          "required": []
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "ScreenCaptureAction_DetectObjects",
+        "description": "Capture the entire screen and run YOLO object detection to identify objects in the current view.\n\nWhen to use: when the user asks what objects are visible on screen; when you need to locate UI elements, icons, or visual elements; when spatial understanding of the screen is needed.\n\nCOOPERATION with CaptureScreen: This tool locates OBJECTS; OCR reads TEXT. For a complete picture of the screen, call BOTH in parallel. YOLO tells you where things ARE, OCR tells you what things SAY. Example: YOLO finds a button at (500,300), OCR finds text \"Save\" near that position → you now know there is a Save button at (500,300) you can click.\n\nWhen NOT to use alone: for tasks that also need text understanding — combine with CaptureScreen.\n\nInference mode: Configured in config.py via YOLO_INFERENCE_MODE (\"local\" or \"cloud\").\n- local: Uses a local YOLO .pt model file (config.YOLO_MODEL_PATH). Requires ultralytics + PyTorch.\n- cloud: Screenshots are Base64-encoded and sent to a remote YOLO API (config.YOLO_CLOUD_API_URL) with X-API-Key auth (config.YOLO_CLOUD_API_KEY). No local GPU required.\n\nBehavior:\n1. Captures the entire screen as an image.\n2. Runs YOLO inference via the configured mode.\n3. Returns a JSON array of detected objects:\n   {\n     \"class\": \"person\",\n     \"confidence\": 0.9231,\n     \"box\": [x1, y1, x2, y2]\n   }\n   The box is [left, top, right, bottom] in pixels.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "confidence_threshold": {
+              "type": "number",
+              "description": "Minimum confidence score for detections (0.0–1.0). Defaults to 0.5. Lower values return more results but may include false positives.",
+              "minimum": 0.0,
+              "maximum": 1.0
+            }
+          },
+          "required": []
+        }
+      }
+    }
+  ],
+
+  "examples": [
+    {
+      "user": "What text is currently visible on my screen?",
+      "assistant": {
+        "name": "ScreenCaptureAction_CaptureScreen",
+        "arguments": {}
+      }
+    },
+    {
+      "user": "What objects can you see on my screen right now?",
+      "assistant": {
+        "name": "ScreenCaptureAction_DetectObjects",
+        "arguments": {}
+      }
+    },
+    {
+      "user": "What's on my screen?",
+      "assistant": [
+        {
+          "name": "ScreenCaptureAction_CaptureScreen",
+          "arguments": {}
+        },
+        {
+          "name": "ScreenCaptureAction_DetectObjects",
+          "arguments": {}
+        }
+      ],
+      "note": "Call BOTH in parallel — OCR for text, YOLO for objects. Combine results for a complete answer."
+    },
+    {
+      "user": "Find the settings icon and tell me what text is next to it.",
+      "assistant": [
+        {
+          "name": "ScreenCaptureAction_DetectObjects",
+          "arguments": {}
+        },
+        {
+          "name": "ScreenCaptureAction_CaptureScreen",
+          "arguments": {}
+        }
+      ],
+      "note": "YOLO locates the icon's position, OCR reads nearby text. Use YOLO bounding box to find which OCR results are adjacent."
+    },
+    {
+      "user": "Is there an error message on screen? Where is it?",
+      "assistant": [
+        {
+          "name": "ScreenCaptureAction_CaptureScreen",
+          "arguments": {}
+        },
+        {
+          "name": "ScreenCaptureAction_DetectObjects",
+          "arguments": {}
+        }
+      ],
+      "note": "OCR finds 'error' in text results, YOLO locates the dialog window. Cross-reference by position."
+    },
+    {
+      "user": "Detect objects on screen with high confidence only.",
+      "assistant": {
+        "name": "ScreenCaptureAction_DetectObjects",
+        "arguments": {
+          "confidence_threshold": 0.8
+        }
+      }
+    }
+  ]
+}

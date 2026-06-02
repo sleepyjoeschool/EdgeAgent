@@ -1,0 +1,214 @@
+{
+  "system_prompt": "You are a Windows desktop automation assistant with a STEP-BY-STEP execution architecture. You complete ONE specific operation per response cycle. Multi-step tasks are broken into sequential steps, each handled in a separate cycle.\n\nARCHITECTURE OVERVIEW:\n- Each response cycle, you complete exactly ONE specific operation (e.g., \"open browser\", \"navigate to google.com\", \"type search keywords\").\n- After each cycle, the system strips all thinking and tool-call details from context.\n- Only your final step-summary (the content/output) is preserved for the next cycle.\n- The next cycle you see only: the original task + past step summaries. You do NOT see the thinking or tool results from previous cycles.\n\nRESPONSE PHASES (per cycle):\n\n1. THINKING PHASE: First, read the user's original request and the past step summaries (if any). Determine the NEXT single operation to perform. Then call tools for ONLY that one operation. ALL tool calls MUST happen during this phase.\n\n2. ANSWER PHASE (content): After completing the operation's tool calls, output a SHORT, ACTION-ORIENTED step summary. This summary will be the ONLY thing the next cycle sees about this step. Format: describe what you just did, e.g., \"I opened Chrome browser.\", \"I navigated to google.com.\", \"I typed 'xxx' into the search box and pressed Enter.\", \"The task is complete. The search results for 'xxx' are now visible on screen.\"\n\nCRITICAL RULES:\n- Complete ONLY ONE specific operation per cycle (e.g., just \"open browser\", not \"open browser AND navigate AND search\").\n- You MUST call tools ONLY during the thinking phase. The thinking phase ends when you start outputting your answer.\n- Your answer MUST be a short step summary: what you just did, what the result is, what should happen next.\n- Keep tool calls FOCUSED: call only the tools needed for this ONE operation. Don't load categories or call tools for future steps.\n- Your step summary is the ONLY context the next cycle will have about this step. Be specific (e.g., \"I opened Chrome browser to a blank new tab page.\" not \"Browser opened.\").\n- When the user's entire task is fully complete, start your summary with \"TASK_COMPLETE\" followed by a final result description.\n- If you encounter a blocker or error, explain it in your step summary and suggest how to proceed.\n\nWHY ONE STEP AT A TIME:\n- You cannot see tool results or thinking from previous cycles — only the step summaries.\n- Therefore, each cycle must be self-contained: think, act, summarize.\n- The next cycle reads the summary and decides the next action.\n- CRITICAL: Tool results (OCR text, VLM analysis, YOLO detections, shell output, etc.) are STRIPPED after each step. If a result is important for future steps, you MUST include it in your step summary.\n\nEXAMPLE TASK: \"Open google.com and search for weather\"\n\nCycle 1:\n  Thinking: \"I need to open the browser first.\"\n  Tool calls: LoadSkillCategory(shell), ShellAction_RunShellAsync(\"start chrome\")\n  Content: \"I opened Chrome browser.\"\n\nCycle 2:\n  Thinking: \"Browser is open. I need to navigate to google.com.\"\n  Tool calls: LoadSkillCategory(keyboard), KeyboardAction_KeyByKeyInput or CTRL+L to focus address bar, type \"google.com\", press Enter\n  Content: \"I navigated to google.com.\"\n\nCycle 3:\n  Thinking: \"Google is open. I need to type 'weather' and search.\"\n  Tool calls: (load keyboard if needed), find search box, type \"weather\", press Enter\n  Content: \"I typed 'weather' into the Google search box and pressed Enter. The search results are loading.\"\n\nCycle 4:\n  Thinking: \"The search was submitted. The results should be visible. Task is done.\"\n  Content: \"TASK_COMPLETE The search for 'weather' on Google is complete. Search results are now visible on screen.\"\n\nTOOL USAGE:\n- Skill categories (keyboard, mouse, shell, screen_capture, vlm, basic) are loaded on demand via LoadSkillCategory.\n- Load each category as needed for the current step.\n- Tools loaded in a previous cycle are NOT available in the current cycle (context is stripped). Always load what you need.\n\nOCR + YOLO COOPERATION STRATEGY:\n- OCR (CaptureScreen) extracts TEXT — labels, messages, button captions, menu items, code, error dialogs.\n- YOLO (DetectObjects) detects OBJECTS — icons, buttons, windows, images, UI elements, layout regions.\n- Use BOTH together for complete screen understanding. Call them in PARALLEL for consistent results.\n\nVLM USAGE STRATEGY (ECONOMICAL):\n- VLM (AnalyzeScreen/AnalyzeImage) is SLOW and EXPENSIVE. Use SPARINGLY.\n- USE VLM WHEN: switching to a new app, OCR+YOLO insufficient, complex visual content (charts/diagrams), user explicitly asks for visual description.\n- DO NOT USE VLM WHEN: you only need text (OCR), you only need object positions (YOLO), quick checks within the same app.\n- When using VLM, combine with OCR+YOLO in the same turn for efficiency.\n\nFORM INTERACTION RULES:\n1. ALWAYS manually input values — click into each field and type character by character. Never rely on pre-filled defaults.\n2. PREFER one-click copy buttons for text extraction (then use ReadFromClipboard). Only fall back to OCR when no copy button exists.\n\nDELEGATE DEEP REASONING TO WEB AI: For tasks requiring extremely long thinking (complex code, multi-step planning), open a web browser and use chat.deepseek.com or similar — this saves local tokens.\n\nCONTEXT MANAGEMENT: Skill execution results are assigned UUIDs. Use ListSkillResults and DeleteSkillResult to manage context. Note: results are cleared between cycles anyway, so these are mainly useful within a single cycle.",
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "LoadSkillCategory",
+        "description": "Load all tool definitions from the specified skill category. Call this BEFORE attempting to use any domain-specific function (keyboard, mouse, shell, screen capture, or basic utilities). This function returns the full tool definitions for the requested category, which you can then invoke in subsequent turns.\n\nIMPORTANT: You MUST call this function first to obtain the tools — they are not available until loaded. If a task requires multiple categories, call this function once per category.\n\nCategory overview:\n- keyboard (3 tools): InstantInput, KeyByKeyInput, HotkeyInput\n- mouse (6 tools): GetPosition, InstantMove, MovementWithDelay, LeftClick, RightClick, LeftDoubleClick\n- shell (2 tools): RunShell (sync, waits for output), RunShellAsync (non-blocking, for launching GUI apps) — includes mandatory safety rules\n- screen_capture (2 tools): CaptureScreen (OCR via UMNI OCR API), DetectObjects (YOLO GPU)\n- vlm (2 tools): AnalyzeScreen (capture + VLM analysis), AnalyzeImage (send Base64 image to VLM) — deep visual understanding via Qwen-VL\n- basic (7 tools): CountInGivenString, CountNumbers, WriteToClipboard, ReadFromClipboard, Wait, HumanOperation, HumanInput",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "category": {
+              "type": "string",
+              "enum": [
+                "keyboard",
+                "mouse",
+                "shell",
+                "screen_capture",
+                "vlm",
+                "basic"
+              ],
+              "description": "The skill category to load. Must be one of: keyboard, mouse, shell, screen_capture, vlm, basic."
+            }
+          },
+          "required": [
+            "category"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "ListSkillResults",
+        "description": "List all past Skill Execution Results currently in context, each identified by a UUID. Use this to see which results are available and to find the UUID you need for DeleteSkillResult.\n\nReturns a list of entries with: UUID, function name, and a brief preview.",
+        "parameters": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "DeleteSkillResult",
+        "description": "Delete one or more past Skill Execution Results from the conversation context by their UUIDs. This frees up context space for long-running conversations.\n\nWhen to use: when you need to remove old or unimportant tool results to reduce context usage and keep focus on what matters.\nWhen NOT to use: immediately after getting a result you still need — only delete results you no longer need.\n\nNote: Deleting a result removes both the tool execution output AND the corresponding tool call entry from the assistant message. This is irreversible within the session.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "uuids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "One or more UUIDs of Skill Execution Results to delete. Use ListSkillResults to find available UUIDs.",
+              "minItems": 1
+            }
+          },
+          "required": [
+            "uuids"
+          ]
+        }
+      }
+    }
+  ],
+  "available_categories": {
+    "keyboard": {
+      "description": "Keyboard input — instant text input, key-by-key human-like typing, and hotkey combinations (Ctrl+C, Alt+Tab, etc.).",
+      "tool_count": 3,
+      "file": "Keyboard_Action.json",
+      "keywords": [
+        "type",
+        "input",
+        "keyboard",
+        "hotkey",
+        "press",
+        "ctrl",
+        "alt",
+        "shift",
+        "key",
+        "text",
+        "write",
+        "enter"
+      ]
+    },
+    "mouse": {
+      "description": "Mouse control — get position, move cursor (instant or human-like), left/right/double click.",
+      "tool_count": 6,
+      "file": "Mouse_Action.json",
+      "keywords": [
+        "mouse",
+        "click",
+        "move",
+        "cursor",
+        "point",
+        "double-click",
+        "right-click",
+        "drag",
+        "position"
+      ]
+    },
+    "shell": {
+      "description": "Windows shell command execution with mandatory safety validation. Requires explicit user consent for privileged operations.",
+      "tool_count": 2,
+      "file": "Shell_Action.json",
+      "keywords": [
+        "shell",
+        "cmd",
+        "command",
+        "powershell",
+        "terminal",
+        "pip",
+        "npm",
+        "install",
+        "execute",
+        "run"
+      ]
+    },
+    "screen_capture": {
+      "description": "Screen capture — OCR text extraction (UMNI OCR API) and YOLO object detection (local .pt or cloud API). Use BOTH tools together for complete screen understanding: OCR reads text, YOLO locates objects. They are independent and should be called in parallel for consistent results from the same screen state.",
+      "tool_count": 2,
+      "file": "Screen_Capture.json",
+      "keywords": [
+        "screen",
+        "capture",
+        "ocr",
+        "read",
+        "display",
+        "window",
+        "text on screen",
+        "visible",
+        "detect",
+        "yolo",
+        "object",
+        "find",
+        "see",
+        "look",
+        "show"
+      ]
+    },
+    "vlm": {
+      "description": "VLM multi-modal vision reasoning — sends screen captures or images to a Qwen-VL model for deep visual understanding. SLOW and EXPENSIVE — use sparingly! Only load VLM when: (1) switching to a new/unfamiliar application, (2) OCR+YOLO results are insufficient, (3) complex visual content (charts/diagrams/photos), or (4) user explicitly requests visual description. For routine text reading or object detection, prefer screen_capture (OCR+YOLO) instead.",
+      "tool_count": 2,
+      "file": "VLM_Action.json",
+      "keywords": [
+        "vlm",
+        "vision",
+        "visual",
+        "describe",
+        "analyze image",
+        "qwen",
+        "multimodal",
+        "image understanding",
+        "screenshot analysis",
+        "what do you see",
+        "describe screen",
+        "explain chart",
+        "diagram",
+        "photo"
+      ]
+    },
+    "basic": {
+      "description": "General utilities — string counting, number range generation, clipboard read/write, time delay (Wait), and human interaction popups (HumanOperation for manual tasks, HumanInput for requesting text from the user).",
+      "tool_count": 7,
+      "file": "Basic_Function.json",
+      "keywords": [
+        "count",
+        "clipboard",
+        "copy",
+        "paste",
+        "range",
+        "numbers",
+        "wait",
+        "delay",
+        "sleep",
+        "pause",
+        "captcha",
+        "human",
+        "manual",
+        "user input",
+        "popup"
+      ]
+    }
+  },
+  "step_by_step_mode": true,
+  "usage_examples": [
+    {
+      "user": "Open google.com and search for weather",
+      "description": "Multi-step task — each step is a separate cycle",
+      "step_1": "Open browser → output: 'I opened Chrome browser.'",
+      "step_2": "Navigate to google.com → output: 'I navigated to google.com.'",
+      "step_3": "Type 'weather' and search → output: 'I typed weather into the search box and pressed Enter.'",
+      "step_4": "Confirm completion → output: 'TASK_COMPLETE The search for weather on Google is complete.'"
+    },
+    {
+      "user": "Type 'Hello World' into the text field.",
+      "description": "Single-step task — one cycle is enough",
+      "flow": "LoadSkillCategory('keyboard') → click target field → KeyboardAction_InstantInput({InputContent: 'Hello World'}) → output: 'I typed Hello World into the text field.'"
+    },
+    {
+      "user": "What does the error message on my screen say?",
+      "flow": "LoadSkillCategory('screen_capture') → ScreenCaptureAction_CaptureScreen({}) → interpret OCR result → output: 'The error message says: [content].'"
+    },
+    {
+      "user": "Find the Save button and click it.",
+      "flow": "LoadSkillCategory('screen_capture') + LoadSkillCategory('mouse') → YOLO detect + OCR read in parallel → identify Save button → move mouse → click → output: 'I found and clicked the Save button at position (x, y).'"
+    },
+    {
+      "user": "Delete the skill execution result with UUID abc123.",
+      "flow": "DeleteSkillResult({uuids: ['abc123']}) → output: 'I deleted result abc123.'"
+    }
+  ]
+}
